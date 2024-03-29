@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Node.js API Debug UI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Login</h2>
+        <input type="text" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div class="container" style="display: none;" id="api-container">
+        <h2>API Debugging</h2>
+        <button onclick="getAllTodos()">Get All Todos</button>
+        <button onclick="getTodoById()">Get Todo by ID</button>
+        <button onclick="createTodo()">Create Todo</button>
+        <button onclick="updateTodo()">Update Todo</button>
+        <button onclick="deleteTodo()">Delete Todo</button>
+        <div class="response" id="response"></div>
+    </div>
+
+    <script>
+        let token = ''; // Initialize token variable
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const response = await fetch('http://localhost:3000/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                // Authentication successful
+                token = data.token; // Store the token
+                document.getElementById('api-container').style.display = 'block';
+            } else {
+                // Authentication failed
+                alert(data.message);
+            }
+        }
+
+        async function getAllTodos() {
+            const response = await fetch('http://localhost:3000/todo/getall', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            displayResponse(response);
+        }
+
+        async function getTodoById() {
+            const id = prompt('Enter Todo ID:');
+            const response = await fetch(`http://localhost:3000/todo/get/${id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            displayResponse(response);
+        }
+
+        async function createTodo() {
+            const todo = prompt('Enter Todo:');
+            const response = await fetch('http://localhost:3000/todo/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ todo })
+            });
+            displayResponse(response);
+        }
+
+        async function updateTodo() {
+            const id = prompt('Enter Todo ID:');
+            const updatedTodo = prompt('Enter Updated Todo:');
+            const response = await fetch(`http://localhost:3000/todo/put/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ updatedTodo })
+            });
+            displayResponse(response);
+        }
+
+        async function deleteTodo() {
+            const id = prompt('Enter Todo ID:');
+            const response = await fetch(`http://localhost:3000/todo/delete/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            displayResponse(response);
+        }
+
+        async function displayResponse(response) {
+            try {
+                const data = await response.json();
+                const responseData = response.status === 204 ? 'No Content' : data;
+                document.getElementById('response').innerText = JSON.stringify(responseData, null, 2);
+            } catch (error) {
+                console.error('Error parsing JSON response:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>
