@@ -25,7 +25,7 @@ To run the project locally, follow these steps:
 3. **Install dependencies**:
 
     ```bash
-    node index.js
+    npm install
     ```
 
 4. **Set up environment variables**:
@@ -40,7 +40,7 @@ To run the project locally, follow these steps:
 5. **Start the server**:
 
     ```bash
-    npm start
+    node index.js
     ```
 
 ## Usage
